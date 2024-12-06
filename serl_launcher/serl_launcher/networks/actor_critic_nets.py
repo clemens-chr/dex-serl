@@ -47,8 +47,8 @@ def multiple_action_q_function(forward):
 
 
 class Critic(nn.Module):
-    encoder: Optional[nn.Module]
     network: nn.Module
+    encoder: Optional[nn.Module] = None
     init_final: Optional[float] = None
 
     @nn.compact
@@ -60,7 +60,8 @@ class Critic(nn.Module):
             obs_enc = observations
         else:
             obs_enc = self.encoder(observations)
-
+        breakpoint()
+        obs_enc = jnp.squeeze(obs_enc)
         inputs = jnp.concatenate([obs_enc, actions], -1)
         outputs = self.network(inputs, train)
         if self.init_final is not None:
@@ -120,9 +121,9 @@ def ensemblize(cls, num_qs, out_axes=0):
     return EnsembleModule
 
 class Policy(nn.Module):
-    encoder: Optional[nn.Module]
     network: nn.Module
     action_dim: int
+    encoder: Optional[nn.Module] = None
     init_final: Optional[float] = None
     std_parameterization: str = "exp"  # "exp", "softplus", "fixed", or "uniform"
     std_min: Optional[float] = 1e-5
@@ -138,7 +139,6 @@ class Policy(nn.Module):
             obs_enc = observations
         else:
             obs_enc = self.encoder(observations, train=train, stop_gradient=True)
-
         outputs = self.network(obs_enc, train=train)
 
         means = nn.Dense(self.action_dim, kernel_init=default_init())(outputs)

@@ -97,6 +97,10 @@ class SACAgent(flax.struct.PyTreeNode):
         """
         if train:
             assert rng is not None, "Must specify rng when training"
+        observations = (
+            observations['state'].squeeze() if len(observations['state'].shape) > 1 
+            else observations['state']
+        )
         return self.state.apply_fn(
             {"params": grad_params or self.state.params},
             observations,
@@ -141,6 +145,9 @@ class SACAgent(flax.struct.PyTreeNode):
             next_actions,
             next_actions_log_probs,
         ) = next_action_distributions.sample_and_log_prob(seed=rng)
+        breakpoint()
+        next_actions = next_actions.squeeze()
+        next_actions_log_probs = next_actions_log_probs.squeeze()
         chex.assert_equal_shape([batch["actions"], next_actions])
         chex.assert_shape(next_actions_log_probs, (batch_size,))
 
@@ -283,8 +290,8 @@ class SACAgent(flax.struct.PyTreeNode):
         batch_size = batch["rewards"].shape[0]
         chex.assert_tree_shape_prefix(batch, (batch_size,))
 
-        if self.config["image_keys"][0] not in batch["next_observations"]:
-            batch = _unpack(batch)
+        # if self.config["image_keys"][0] not in batch["next_observations"]:
+            # batch = _unpack(batch)
         rng, aug_rng = jax.random.split(self.state.rng)
         if "augmentation_function" in self.config.keys() and self.config["augmentation_function"] is not None:
             batch = self.config["augmentation_function"](batch, aug_rng)
@@ -553,5 +560,82 @@ class SACAgent(flax.struct.PyTreeNode):
             agent = load_resnet10_params(agent, image_keys)
 
         return agent
+    
+    @classmethod
+    def create_states(
+        cls,
+        rng: PRNGKey,
+        observations: Data,
+        actions: jnp.ndarray,
+        critic_network_kwargs: dict = {
+            "hidden_dims": [256, 256],
+        },
+        policy_network_kwargs: dict = {
+            "hidden_dims": [256, 256],
+        },
+        policy_kwargs: dict = {
+            "tanh_squash_distribution": True,
+            "std_parameterization": "uniform",
+        },
+        critic_ensemble_size: int = 2,
+        critic_subsample_size: Optional[int] = None,
+        temperature_init: float = 1.0,
+        **kwargs,
+    ) -> "SACAgent":
+        """Creates a state-based SAC agent.
+        
+        Args:
+            rng: Random number generator key
+            observations: Sample observations
+            actions: Sample actions
+            critic_network_kwargs: Keyword arguments for critic network
+            policy_network_kwargs: Keyword arguments for policy network
+            policy_kwargs: Keyword arguments for policy
+            critic_ensemble_size: Number of critics in ensemble
+            critic_subsample_size: Number of critics to sample for update
+            temperature_init: Initial temperature value
+            **kwargs: Additional arguments passed to create()
+            
+        Returns:
+            An instance of SACAgent
+        """
+        # Define networks
+        critic_backbone = partial(MLP, **critic_network_kwargs)
+        critic_backbone = ensemblize(critic_backbone, critic_ensemble_size)(
+            name="critic_ensemble"
+        )
+        critic_def = Critic(
+            network=critic_backbone,
+            name="critic"
+        )
 
- 
+        policy_def = Policy(
+            network=MLP(**policy_network_kwargs),
+            action_dim=actions.shape[-1],
+            **policy_kwargs,
+            name="actor",
+        )
+
+        temperature_def = GeqLagrangeMultiplier(
+            init_value=temperature_init,
+            constraint_shape=(),
+            constraint_type="geq",
+            name="temperature",
+        )
+        observations = (
+            observations['state'].squeeze() if len(observations['state'].shape) > 1 
+            else observations['state']
+        )
+        return cls.create(
+            rng,
+            observations,
+            actions,
+            actor_def=policy_def,
+            critic_def=critic_def,
+            temperature_def=temperature_def,
+            critic_ensemble_size=critic_ensemble_size,
+            critic_subsample_size=critic_subsample_size,
+            **kwargs,
+        )
+
+    

@@ -73,24 +73,6 @@ class PandaPickCubeGymEnv(MujocoGymEnv):
         self._pinch_site_id = self._model.site("pinch").id
         self._block_z = self._model.geom("block").size[2]
 
-        self.observation_space = spaces.Dict(
-            {
-                "state": spaces.Dict(
-                    {
-                        "tcp_pose": spaces.Box(
-                            -np.inf, np.inf, shape=(7,), dtype=np.float32
-                        ),
-                        "tcp_vel": spaces.Box(
-                            -np.inf, np.inf, shape=(6,), dtype=np.float32
-                        ),
-                        "gripper_pose": spaces.Box(
-                            -1, 1, shape=(1,), dtype=np.float32
-                        ),
-                    }
-                ),
-            }
-        )
-
         if self.image_obs:
             self.observation_space = spaces.Dict(
                 {
@@ -125,6 +107,27 @@ class PandaPickCubeGymEnv(MujocoGymEnv):
                     ),
                 }
             )
+        else:
+            self.observation_space = spaces.Dict(
+                {
+                    "state": spaces.Dict(
+                    {
+                        "tcp_pose": spaces.Box(
+                            -np.inf, np.inf, shape=(7,), dtype=np.float32
+                        ),
+                        "tcp_vel": spaces.Box(
+                            -np.inf, np.inf, shape=(6,), dtype=np.float32
+                        ),
+                        "gripper_pose": spaces.Box(
+                            -1, 1, shape=(1,), dtype=np.float32
+                        ),
+                        "block_pos": spaces.Box(
+                            -np.inf, np.inf, shape=(3,), dtype=np.float32
+                        ),
+                    }
+                ),
+            }
+        )
 
         self.action_space = spaces.Box(
             low=np.asarray([-1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0]),

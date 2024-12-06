@@ -23,9 +23,10 @@ from franka_sim.envs.panda_pick_gym_env import PandaPickCubeGymEnv
 
 class TrainConfig(DefaultTrainingConfig):
     controller_type = ControllerType.XBOX
-    image_keys = ["front", "wrist"]
+    # image_keys = ["front", "wrist"]
+    image_keys = []
     classifier_keys = ["front", "wrist"]
-    proprio_keys = ["tcp_pose", "tcp_vel", "gripper_pose"]
+    proprio_keys = ["tcp_pose", "tcp_vel", "gripper_pose", "block_pos"]
     buffer_period = 2000
     replay_buffer_capacity = 50000
     batch_size = 64
@@ -33,17 +34,20 @@ class TrainConfig(DefaultTrainingConfig):
     checkpoint_period = 5000
     steps_per_update = 50
     encoder_type = "resnet-pretrained"
-    setup_mode = "single-arm-learned-gripper"
+    # setup_mode = "single-arm-learned-gripper"
+    setup_mode = "single-arm-state"
     fake_env = False
     classifier = False
 
     def get_environment(self, fake_env=False, save_video=False, classifier=False):
-        env = PandaPickCubeGymEnv(render_mode="human", image_obs=True, time_limit=100.0, control_dt=0.1)
+        # env = PandaPickCubeGymEnv(render_mode="human", image_obs=True, time_limit=100.0, control_dt=0.1)
+        env = PandaPickCubeGymEnv(render_mode="human", image_obs=False, time_limit=100.0, control_dt=0.1)
+
         if not fake_env:
             env = JoystickIntervention(env=env, controller_type=self.controller_type)
         env = RelativeFrame(env)
         env = Quat2EulerWrapper(env)
-        env = SERLObsWrapper(env, proprio_keys=self.proprio_keys)
+        env = SERLObsWrapper(env, proprio_keys=self.proprio_keys, image_obs=False)
         env = ChunkingWrapper(env, obs_horizon=1, act_exec_horizon=None)
         if classifier:
             classifier = load_classifier_func(

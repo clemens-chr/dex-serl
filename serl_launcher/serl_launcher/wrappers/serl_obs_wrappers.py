@@ -8,9 +8,10 @@ class SERLObsWrapper(gym.ObservationWrapper):
     of a flattened state space and the images.
     """
 
-    def __init__(self, env, proprio_keys=None):
+    def __init__(self, env, proprio_keys=None, image_obs=True):
         super().__init__(env)
         self.proprio_keys = proprio_keys
+        self.image_obs = image_obs
         if self.proprio_keys is None:
             self.proprio_keys = list(self.env.observation_space["state"].keys())
 
@@ -21,7 +22,7 @@ class SERLObsWrapper(gym.ObservationWrapper):
         self.observation_space = gym.spaces.Dict(
             {
                 "state": flatten_space(self.proprio_space),
-                **(self.env.observation_space["images"]),
+                **(self.env.observation_space["images"] if self.image_obs else {}),
             }
         )
 
@@ -31,7 +32,7 @@ class SERLObsWrapper(gym.ObservationWrapper):
                 self.proprio_space,
                 {key: obs["state"][key] for key in self.proprio_keys},
             ),
-            **(obs["images"]),
+            **(obs["images"] if self.image_obs else {}),
         }
         return obs
 

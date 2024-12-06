@@ -24,6 +24,7 @@ from agentlace.trainer import TrainerServer, TrainerClient
 from agentlace.data.data_store import QueuedDataStore
 
 from serl_launcher.utils.launcher import (
+    make_sac_state_agent,
     make_sac_pixel_agent,
     make_sac_pixel_agent_hybrid_single_arm,
     make_sac_pixel_agent_hybrid_dual_arm,
@@ -412,6 +413,14 @@ def main(_):
             discount=config.discount,
         )
         include_grasp_penalty = True
+    elif config.setup_mode == 'single-arm-state':
+        agent: SACAgent = make_sac_state_agent(
+            seed=FLAGS.seed,
+            sample_obs=env.observation_space.sample(),
+            sample_action=env.action_space.sample(),
+            discount=config.discount,
+        )
+        include_grasp_penalty = False
     else:
         raise NotImplementedError(f"Unknown setup mode: {config.setup_mode}")
 

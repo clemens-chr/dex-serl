@@ -15,31 +15,32 @@ class MemoryEfficientReplayBuffer(ReplayBuffer):
         observation_space: gym.Space,
         action_space: gym.Space,
         capacity: int,
-        pixel_keys: Tuple[str, ...] = ("pixels",),
+        pixel_keys: Tuple[str, ...] = ("pixels",), 
         include_next_actions: Optional[bool] = False,
         include_grasp_penalty: Optional[bool] = False,
     ):
         self.pixel_keys = pixel_keys
 
         observation_space = copy.deepcopy(observation_space)
-        self._num_stack = None
-        for pixel_key in self.pixel_keys:
-            pixel_obs_space = observation_space.spaces[pixel_key]
-            if self._num_stack is None:
-                self._num_stack = pixel_obs_space.shape[0]
-            else:
-                assert self._num_stack == pixel_obs_space.shape[0]
-            self._unstacked_dim_size = pixel_obs_space.shape[-1]
-            low = pixel_obs_space.low[0]
-            high = pixel_obs_space.high[0]
-            unstacked_pixel_obs_space = Box(
-                low=low, high=high, dtype=pixel_obs_space.dtype
-            )
-            observation_space.spaces[pixel_key] = unstacked_pixel_obs_space
+        self._num_stack = 0
+        # self._num_stack = None
+        # for pixel_key in self.pixel_keys:
+        #     pixel_obs_space = observation_space.spaces[pixel_key]
+        #     if self._num_stack is None:
+        #         self._num_stack = pixel_obs_space.shape[0]
+        #     else:
+        #         assert self._num_stack == pixel_obs_space.shape[0]
+        #     self._unstacked_dim_size = pixel_obs_space.shape[-1]
+        #     low = pixel_obs_space.low[0]
+        #     high = pixel_obs_space.high[0]
+        #     unstacked_pixel_obs_space = Box(
+        #         low=low, high=high, dtype=pixel_obs_space.dtype
+        #     )
+        #     observation_space.spaces[pixel_key] = unstacked_pixel_obs_space
 
         next_observation_space_dict = copy.deepcopy(observation_space.spaces)
-        for pixel_key in self.pixel_keys:
-            next_observation_space_dict.pop(pixel_key)
+        # for pixel_key in self.pixel_keys:
+        #     next_observation_space_dict.pop(pixel_key)
         next_observation_space = gym.spaces.Dict(next_observation_space_dict)
 
         self._first = True
@@ -68,20 +69,20 @@ class MemoryEfficientReplayBuffer(ReplayBuffer):
 
         obs_pixels = {}
         next_obs_pixels = {}
-        for pixel_key in self.pixel_keys:
-            obs_pixels[pixel_key] = data_dict["observations"].pop(pixel_key)
-            next_obs_pixels[pixel_key] = data_dict["next_observations"].pop(pixel_key)
+        # for pixel_key in self.pixel_keys:
+        #     obs_pixels[pixel_key] = data_dict["observations"].pop(pixel_key)
+        #     next_obs_pixels[pixel_key] = data_dict["next_observations"].pop(pixel_key)
 
         if self._first:
             for i in range(self._num_stack):
-                for pixel_key in self.pixel_keys:
-                    data_dict["observations"][pixel_key] = obs_pixels[pixel_key][i]
+                # for pixel_key in self.pixel_keys:
+                #     data_dict["observations"][pixel_key] = obs_pixels[pixel_key][i]
 
                 self._is_correct_index[self._insert_index] = False
                 super().insert(data_dict)
 
-        for pixel_key in self.pixel_keys:
-            data_dict["observations"][pixel_key] = next_obs_pixels[pixel_key][-1]
+        # for pixel_key in self.pixel_keys:
+        #     data_dict["observations"][pixel_key] = next_obs_pixels[pixel_key][-1]
 
         self._first = data_dict["dones"]
 
@@ -139,8 +140,8 @@ class MemoryEfficientReplayBuffer(ReplayBuffer):
 
         obs_keys = self.dataset_dict["observations"].keys()
         obs_keys = list(obs_keys)
-        for pixel_key in self.pixel_keys:
-            obs_keys.remove(pixel_key)
+        # for pixel_key in self.pixel_keys:
+        #     obs_keys.remove(pixel_key)
 
         batch["observations"] = {}
         for k in obs_keys:
@@ -148,20 +149,20 @@ class MemoryEfficientReplayBuffer(ReplayBuffer):
                 self.dataset_dict["observations"][k], indx
             )
 
-        for pixel_key in self.pixel_keys:
-            obs_pixels = self.dataset_dict["observations"][pixel_key]
-            obs_pixels = np.lib.stride_tricks.sliding_window_view(
-                obs_pixels, self._num_stack + 1, axis=0
-            )
-            obs_pixels = obs_pixels[indx - self._num_stack]
-            # transpose from (B, H, W, C, T) to (B, T, H, W, C) to follow jaxrl_m convention
-            obs_pixels = obs_pixels.transpose((0, 4, 1, 2, 3))
+        # for pixel_key in self.pixel_keys:
+        #     obs_pixels = self.dataset_dict["observations"][pixel_key]
+        #     obs_pixels = np.lib.stride_tricks.sliding_window_view(
+        #         obs_pixels, self._num_stack + 1, axis=0
+        #     )
+        #     obs_pixels = obs_pixels[indx - self._num_stack]
+        #     # transpose from (B, H, W, C, T) to (B, T, H, W, C) to follow jaxrl_m convention
+        #     obs_pixels = obs_pixels.transpose((0, 4, 1, 2, 3))
 
-            if pack_obs_and_next_obs:
-                batch["observations"][pixel_key] = obs_pixels
-            else:
-                batch["observations"][pixel_key] = obs_pixels[:, :-1, ...]
-                if "next_observations" in keys:
-                    batch["next_observations"][pixel_key] = obs_pixels[:, 1:, ...]
+        #     if pack_obs_and_next_obs:
+        #         batch["observations"][pixel_key] = obs_pixels
+        #     else:
+        #         batch["observations"][pixel_key] = obs_pixels[:, :-1, ...]
+        #         if "next_observations" in keys:
+        #             batch["next_observations"][pixel_key] = obs_pixels[:, 1:, ...]
 
         return frozen_dict.freeze(batch)
