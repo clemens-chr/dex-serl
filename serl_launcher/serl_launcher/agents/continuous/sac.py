@@ -97,10 +97,10 @@ class SACAgent(flax.struct.PyTreeNode):
         """
         if train:
             assert rng is not None, "Must specify rng when training"
-        observations = (
-            observations['state'].squeeze() if len(observations['state'].shape) > 1 
-            else observations['state']
-        )
+        # observations = (
+        #     observations['state'].squeeze() if len(observations['state'].shape) > 1 
+        #     else observations['state']
+        # )
         return self.state.apply_fn(
             {"params": grad_params or self.state.params},
             observations,
@@ -604,12 +604,28 @@ class SACAgent(flax.struct.PyTreeNode):
         critic_backbone = ensemblize(critic_backbone, critic_ensemble_size)(
             name="critic_ensemble"
         )
-        critic_def = Critic(
-            network=critic_backbone,
-            name="critic"
+
+        encoder_def = EncodingWrapper(
+            encoder=None,
+            use_proprio=True,
+            enable_stacking=True,
+            image_keys=[],
         )
 
+        encoders = {
+            "critic": encoder_def,
+            "actor": encoder_def,
+        }
+        critic_backbone = partial(MLP, **critic_network_kwargs)
+        critic_backbone = ensemblize(critic_backbone, critic_ensemble_size)(
+            name="critic_ensemble"
+        )
+        critic_def = partial(
+            Critic, encoder=encoders["critic"], network=critic_backbone
+        )(name="critic")
+
         policy_def = Policy(
+            encoder=encoders["actor"],
             network=MLP(**policy_network_kwargs),
             action_dim=actions.shape[-1],
             **policy_kwargs,
@@ -622,10 +638,10 @@ class SACAgent(flax.struct.PyTreeNode):
             constraint_type="geq",
             name="temperature",
         )
-        observations = (
-            observations['state'].squeeze() if len(observations['state'].shape) > 1 
-            else observations['state']
-        )
+        # observations = (
+        #     observations['state'].squeeze() if len(observations['state'].shape) > 1 
+        #     else observations['state']
+        # )
         return cls.create(
             rng,
             observations,

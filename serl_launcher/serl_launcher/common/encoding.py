@@ -33,24 +33,25 @@ class EncodingWrapper(nn.Module):
     ) -> jnp.ndarray:
         # encode images with encoder
         encoded = []
-        for image_key in self.image_keys:
-            image = observations[image_key]
-            if not is_encoded:
-                if self.enable_stacking:
-                    # Combine stacking and channels into a single dimension
-                    if len(image.shape) == 4:
-                        image = rearrange(image, "T H W C -> H W (T C)")
-                    if len(image.shape) == 5:
-                        image = rearrange(image, "B T H W C -> B H W (T C)")
+        if self.image_keys:
+            for image_key in self.image_keys:
+                image = observations[image_key]
+                if not is_encoded:
+                    if self.enable_stacking:
+                        # Combine stacking and channels into a single dimension
+                        if len(image.shape) == 4:
+                            image = rearrange(image, "T H W C -> H W (T C)")
+                        if len(image.shape) == 5:
+                            image = rearrange(image, "B T H W C -> B H W (T C)")
 
-            image = self.encoder[image_key](image, train=train, encode=not is_encoded)
+                image = self.encoder[image_key](image, train=train, encode=not is_encoded)
 
-            if stop_gradient:
-                image = jax.lax.stop_gradient(image)
+                if stop_gradient:
+                    image = jax.lax.stop_gradient(image)
 
-            encoded.append(image)
+                encoded.append(image)
 
-        encoded = jnp.concatenate(encoded, axis=-1)
+            encoded = jnp.concatenate(encoded, axis=-1)
 
         if self.use_proprio:
             # project state to embeddings as well
@@ -59,7 +60,8 @@ class EncodingWrapper(nn.Module):
                 # Combine stacking and channels into a single dimension
                 if len(state.shape) == 2:
                     state = rearrange(state, "T C -> (T C)")
-                    encoded = encoded.reshape(-1)
+                    if self.image_keys:
+                        encoded = encoded.reshape(-1)
                 if len(state.shape) == 3:
                     state = rearrange(state, "B T C -> B (T C)")
             state = nn.Dense(
