@@ -9,6 +9,7 @@ import numpy as np
 import optax
 from tqdm import tqdm
 from absl import app, flags
+import wandb
 
 from serl_launcher.data.data_store import ReplayBuffer
 from serl_launcher.utils.train_utils import concat_batches
@@ -23,6 +24,7 @@ flags.DEFINE_string("exp_name", None, "Name of experiment corresponding to folde
 flags.DEFINE_integer("num_epochs", 150, "Number of training epochs.")
 flags.DEFINE_integer("batch_size", 256, "Batch size.")
 flags.DEFINE_float("eval_split", 0.15, "Fraction of data to use for evaluation.")
+flags.DEFINE_boolean("debug", False, "Debug mode (disables wandb)")
 
 def split_buffer(buffer, env, eval_split):
     """Split a ReplayBuffer into training and evaluation buffers."""
@@ -55,6 +57,19 @@ def split_buffer(buffer, env, eval_split):
     return train_buffer, eval_buffer
 
 def main(_):
+    # Initialize wandb
+    if not FLAGS.debug:
+        wandb.init(
+            project="reward_classifier-training_jax",
+            name=FLAGS.exp_name,
+            config={
+                "exp_name": FLAGS.exp_name,
+                "num_epochs": FLAGS.num_epochs,
+                "batch_size": FLAGS.batch_size,
+                "eval_split": FLAGS.eval_split
+            }
+        )
+
     assert FLAGS.exp_name in CONFIG_MAPPING, 'Experiment folder not found.'
     config = CONFIG_MAPPING[FLAGS.exp_name]()
     env = config.get_environment(fake_env=True, save_video=False, classifier=False)
@@ -219,6 +234,15 @@ def main(_):
             }
         )
         eval_accuracy = eval_step(classifier, eval_batch, key)
+
+        # Log metrics to wandb
+        if not FLAGS.debug:
+            wandb.log({
+                "train/epoch": epoch,
+                "train/train_loss": float(train_loss),
+                "train/train_accuracy": float(train_accuracy),
+                "eval/eval_accuracy": float(eval_accuracy),
+            }, step=epoch)
 
         print(
             f"Epoch: {epoch+1}, Train Loss: {train_loss:.4f}, Train Accuracy: {train_accuracy:.4f}, Eval Accuracy: {eval_accuracy:.4f}"
