@@ -6,7 +6,7 @@ import numpy as np
 
 from franka_sim import envs
 
-from franka_sim.utils.viewer_utils import DualMujocoViewer
+from franka_sim.utils.viewer_utils import MujocoViewer
 
 env = envs.PandaPickCubeGymEnv(render_mode="human", action_scale=(0.1, 1))
 action_spec = env.action_space
@@ -33,7 +33,7 @@ def key_callback(keycode):
 env.reset()
 
 # Create the dual viewer
-dual_viewer = DualMujocoViewer(env.unwrapped.model, env.unwrapped.data)
+dual_viewer = MujocoViewer(env.unwrapped.model, env.unwrapped.data)
 
 with dual_viewer as viewer:
     start = time.time()

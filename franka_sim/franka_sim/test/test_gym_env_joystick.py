@@ -11,7 +11,7 @@ import gymnasium as gym
 from franka_env.envs.wrappers import JoystickIntervention
 from franka_env.spacemouse.spacemouse_expert import ControllerType
 
-from franka_sim.utils.viewer_utils import DualMujocoViewer
+from franka_sim.utils.viewer_utils import MujocoViewer
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -29,7 +29,7 @@ m = env.unwrapped.model
 d = env.unwrapped.data
 
 # Create the dual viewer
-dual_viewer = DualMujocoViewer(env.unwrapped.model, env.unwrapped.data)
+dual_viewer = MujocoViewer(env.unwrapped.model, env.unwrapped.data)
 
 # intervene on position control
 with dual_viewer as viewer:

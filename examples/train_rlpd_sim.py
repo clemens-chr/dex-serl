@@ -35,7 +35,7 @@ from serl_launcher.data.data_store import MemoryEfficientReplayBufferDataStore
 from experiments.mappings import CONFIG_MAPPING
 import mujoco.viewer
 
-from franka_sim.utils.viewer_utils import DualMujocoViewer
+from franka_sim.utils.viewer_utils import MujocoViewer
 
 FLAGS = flags.FLAGS
 
@@ -153,7 +153,7 @@ def actor(agent, data_store, intvn_data_store, env, sampling_rng):
     intervention_steps = 0
 
     # Create the dual viewer
-    dual_viewer = DualMujocoViewer(env.model, env.data)
+    dual_viewer = MujocoViewer(env.model, env.data)
 
     pbar = tqdm.tqdm(range(start_step, config.max_steps), dynamic_ncols=True)
     with dual_viewer as viewer:
