@@ -17,3 +17,7 @@ serl_robot_infra/serl_robot_infra.egg-info/
 MUJOCO_LOG.TXT
 
 .venv
+
+.python-version
+
+**/orcahand_v1/

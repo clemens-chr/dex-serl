@@ -19,3 +19,16 @@ register(
     max_episode_steps=100,
     kwargs={"image_obs": True},
 )
+
+register(
+    id="OrcaPickCube-v0",
+    entry_point="franka_sim.envs:OrcaPickCubeGymEnv",
+    max_episode_steps=100,
+)
+
+register(
+    id="OrcaPickCubeVision-v0",
+    entry_point="franka_sim.envs:OrcaPickCubeGymEnv",
+    max_episode_steps=100,
+    kwargs={"image_obs": True},
+)
