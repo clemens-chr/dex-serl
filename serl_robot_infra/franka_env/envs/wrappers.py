@@ -479,6 +479,10 @@ class AVPIntervention(gym.ActionWrapper):
             self.gripper_enabled = False
 
         self.action_indices = action_indices
+        
+        # This is important to home the data from avp
+        self.first_intervention = True
+        self.offset = None
 
         self.expert = AVPExpert(avp_ip=avp_ip)
         self.left, self.right = False, False
@@ -488,25 +492,33 @@ class AVPIntervention(gym.ActionWrapper):
         Input:
         - action: policy action
         Output:
-        - action: joystick action if nonezero; else, policy action
+        - action: avp action if intervened (left pinching); else, policy action
         """
-        deadzone = 0.03
-
-        expert_a, buttons = self.expert.get_action()
-        self.left, self.right = tuple(buttons)
-        intervened = False
-
-        intervened = self.expert.intervened
+        
+        if not self.expert.is_intervening():
+            if not self.first_intervention:
+                self.first_intervention = True
+                self.offset = None
+            return action, False
+        
+        
+        expert_a, grasping = self.expert.get_action()
+        self.grasping = grasping
+        
+        if self.first_intervention:
+            ref_position = action[:6]
+            self.offset = ref_position - expert_a[:6]
+            print(f"Offset: {self.offset}")
+            self.first_intervention = False
+        
+        expert_a = expert_a + self.offset
 
         if self.gripper_enabled:
-            if self.left: # close gripper
+            if self.grasping:
                 gripper_action = np.random.uniform(-1, -0.9, size=(1,))
-                intervened = True
-            elif self.right: # open gripper
-                gripper_action = np.random.uniform(0.9, 1, size=(1,))
-                intervened = True
             else:
-                gripper_action = np.zeros((1,))
+                gripper_action = np.random.uniform(0.9, 1, size=(1,))
+              
             expert_a = np.concatenate((expert_a, gripper_action), axis=0)
             # expert_a[:6] += np.random.uniform(-0.5, 0.5, size=6)
 
@@ -515,11 +527,8 @@ class AVPIntervention(gym.ActionWrapper):
             filtred_expert_a[self.action_indices] = expert_a[self.action_indices]
             expert_a = filtred_expert_a
 
-        if intervened:
-            return expert_a, True
-        
-        return action, False
-    
+        return expert_a, True
+            
     def step(self, action):
         
         new_action, replaced = self.action(action)

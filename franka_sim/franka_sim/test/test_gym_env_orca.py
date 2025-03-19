@@ -8,15 +8,16 @@ from franka_sim import envs
 
 from franka_sim.utils.viewer_utils import MujocoViewer
 
+
 env = envs.OrcaPickCubeGymEnv(render_mode="human", action_scale=(0.1, 1))
 action_spec = env.action_space
 
 
 def sample():
     a = np.random.uniform(action_spec.low, action_spec.high, action_spec.shape)
+    
     return a.astype(action_spec.dtype)
-
-
+    
 m = env.model
 d = env.data
 
@@ -34,6 +35,7 @@ env.reset()
 
 # Create the dual viewer
 dual_viewer = MujocoViewer(env.unwrapped.model, env.unwrapped.data)
+
 
 with dual_viewer as viewer:
     start = time.time()
