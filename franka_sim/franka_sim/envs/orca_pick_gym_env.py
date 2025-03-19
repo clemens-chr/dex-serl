@@ -136,8 +136,8 @@ class OrcaPickCubeGymEnv(MujocoGymEnv):
             )
 
         self.action_space = spaces.Box(
-            low = np.asarray([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
-            high = np.asarray([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
+            low = np.asarray([-1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0]),
+            high = np.asarray([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]),
             dtype=np.float32,
         )
 

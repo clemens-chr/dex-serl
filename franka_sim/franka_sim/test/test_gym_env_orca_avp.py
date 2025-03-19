@@ -8,21 +8,19 @@ from franka_sim import envs
 import gymnasium as gym
 
 # import joystick wrapper
-from franka_env.envs.wrappers import JoystickIntervention
-from franka_env.spacemouse.spacemouse_expert import ControllerType
+from franka_env.envs.wrappers import AVPIntervention
 
 from franka_sim.utils.viewer_utils import MujocoViewer
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--controller", type=str, default="xbox", help="Controller type. xbox|ps5")
+    parser.add_argument("--avp_ip", type=str, default="10.93.181.127", help="Controller type. xbox|ps5")
 
     args = parser.parse_args()
-    controller_type = ControllerType[args.controller.upper()]
 
 # env = envs.PandaPickCubeGymEnv(render_mode="human", image_obs=True)
 env = gym.make("OrcaPickCubeVision-v0", render_mode="human", image_obs=True)
-env = JoystickIntervention(env, controller_type=controller_type)
+env = AVPIntervention(env, avp_ip=args.avp_ip)
 
 env.reset()
 m = env.unwrapped.model
