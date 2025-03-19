@@ -8,6 +8,8 @@ import numpy as np
 from gymnasium import spaces
 from gymnasium.spaces import Box
 
+from orca_core import OrcaHand
+
 try:
     import mujoco_py
 except ImportError as e:
@@ -21,9 +23,9 @@ from franka_sim.mujoco_gym_env import GymRenderingSpec, MujocoGymEnv
 
 _HERE = Path(__file__).parent
 _XML_PATH = _HERE / "xmls" / "arena_with_orca.xml"
-_PANDA_HOME = np.asarray((0, -0, 0, -2.35, 0, 1.57, np.pi / 4))
-_CARTESIAN_BOUNDS = np.asarray([[0.2, -0.3, 0], [0.6, 0.3, 0.5]])
-_SAMPLING_BOUNDS = np.asarray([[0.3, -0.15], [0.5, 0.15]])
+_PANDA_HOME = np.asarray((0, -0.785, 0, -2.35, 0, 1.57, np.pi / 4))
+_CARTESIAN_BOUNDS = np.asarray([[0.1, -0.3, 0], [1, 0.3, 0.5]])
+_SAMPLING_BOUNDS = np.asarray([[0.5, -0.15], [0.75, 0.15]])
 
 
 class OrcaPickCubeGymEnv(MujocoGymEnv):
@@ -81,7 +83,13 @@ class OrcaPickCubeGymEnv(MujocoGymEnv):
         # self._pinch_site_id = self._model.site("pinch").id
         self._attachment_site_id = self._model.site("attachment_site").id
         self._block_z = self._model.geom("block").size[2]
-
+        
+        self.hand = OrcaHand('/home/ccc/dev/dex-serl/franka_sim/franka_sim/envs/models/orcahand_v1')
+        self.hand_ctrl_ids = []
+        for actuator in self.hand.joint_ids:
+            self.hand_ctrl_ids.append(self._model.actuator(actuator).id)
+            
+     
         self.observation_space = spaces.Dict(
             {
                 "state": spaces.Dict(
@@ -158,6 +166,11 @@ class OrcaPickCubeGymEnv(MujocoGymEnv):
         # Reset arm to home position.
         self._data.qpos[self._panda_dof_ids] = _PANDA_HOME
         mujoco.mj_forward(self._model, self._data)
+        
+        # Reset hand fingers to 0 position
+        for joint in self.hand.joint_ids:
+            self._data.ctrl[self._model.actuator(joint).id] = self.hand.joint_roms[joint][0]
+            
 
         # Reset mocap body to home position.
         tcp_pos = self._data.sensor("attachment_pos").data
@@ -203,7 +216,10 @@ class OrcaPickCubeGymEnv(MujocoGymEnv):
         # dg = grasp * self._action_scale[1]
         # ng = np.clip(g + dg, 0.0, 1.0)
         # self._data.ctrl[self._gripper_ctrl_id] = ng * 255
-
+        
+        for joint in self.hand.joint_ids:
+            self._data.ctrl[self._model.actuator(joint).id] = self.hand.joint_roms[joint][0] + self.hand.joint_roms[joint][1] * grasp
+        
         for _ in range(self._n_substeps):
             tau = opspace(
                 model=self._model,

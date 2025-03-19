@@ -8,7 +8,7 @@ from franka_sim import envs
 import gymnasium as gym
 
 # import joystick wrapper
-from franka_env.envs.wrappers import AVPIntervention
+from franka_env.envs.wrappers import AVPIntervention, JoystickIntervention
 
 from franka_sim.utils.viewer_utils import MujocoViewer
 
@@ -20,7 +20,8 @@ if __name__ == "__main__":
 
 # env = envs.PandaPickCubeGymEnv(render_mode="human", image_obs=True)
 env = gym.make("OrcaPickCubeVision-v0", render_mode="human", image_obs=True)
-env = AVPIntervention(env, avp_ip=args.avp_ip)
+#env = AVPIntervention(env, avp_ip=args.avp_ip)
+env = JoystickIntervention(env)
 
 env.reset()
 m = env.unwrapped.model

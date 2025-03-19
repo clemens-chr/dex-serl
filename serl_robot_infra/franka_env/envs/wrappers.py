@@ -515,9 +515,9 @@ class AVPIntervention(gym.ActionWrapper):
 
         if self.gripper_enabled:
             if self.grasping:
-                gripper_action = np.random.uniform(-1, -0.9, size=(1,))
+                gripper_action = np.random.uniform(0.95, 1, size=(1,))
             else:
-                gripper_action = np.random.uniform(0.9, 1, size=(1,))
+                gripper_action = np.random.uniform(0, 0.05, size=(1,))
               
             expert_a = np.concatenate((expert_a, gripper_action), axis=0)
             # expert_a[:6] += np.random.uniform(-0.5, 0.5, size=6)

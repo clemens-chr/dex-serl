@@ -6,3 +6,5 @@ dm-robotics-transformations
 imageio[ffmpeg]
 lxml
 inputs==0.5
+
+orca_core

@@ -216,20 +216,23 @@
                       <site name="attachment_site" quat="0 0 0 1"/>
                     </body>
 
-                    <body name="root" pos="-0.03 -0.03 0.151" quat="0.924 0 0.0 0.383">
+                    <body name="root" pos="-0.03 -0.03 0.151" quat=" 0.653  0.653  0.271  0.271">
                         <body name="TowerAssembly_8e26df17" pos="0.0 0.0 0.0" quat="1.0 0.0 0.0 0.0">
                           <body name="CarpalsAssembly_a3f178b9" pos="0.03862890845062728 0.0014412498723578074 0.14109038811689056" quat="1.0 -3.0616169978683886e-17 -2.2204460492503136e-16 9.714451465470105e-17">
                             <body name="T-TP-Assembly_8f310e51" pos="-0.03118350558327121 0.027675165636026754 -0.007674328988471495" quat="0.30673828436873996 -0.7354124897868741 0.6041400016798182 -0.009744390093888075">
                               <body name="T-AP-Assembly_b68d2db9" pos="-0.03000000000000002 -2.42861286636753e-17 -1.8214596497756474e-17" quat="0.573576436351046 0.8191520442889919 0.0 -1.1102230246251565e-16">
                                 <body name="P-PP-Assembly_4e31112a" pos="4.708523807784693e-17 1.513645907263937e-16 -4.2834101494079344e-17" quat="-4.996003610813204e-16 -0.7071067811865476 7.216449660063518e-16 0.7071067811865474">
                                   <body name="ThumbTipAssembly_da16f050" pos="0.0004999999999845258 1.960237527853792e-16 0.03299999999999989" quat="0.9999999999999996 -2.220446049250313e-16 -2.0816681711721685e-16 -5.551115123125783e-16">
-                                    <joint class="orca" name="ThumbTipAssembly_da16f050_joint" pos="-0.13725528249709146 -0.09083064955243778 -0.11281689327909648" axis="-1.3877787807814457e-16 -1.0000000000000018 1.6653345369377348e-16" range="-0.3490658503988659 1.7453292519943295"/>
+                                    <joint class="orca" name="ThumbTipAssembly_da16f050_joint" pos="-0.0 -0.0 0.0" axis="-1.3877787807814457e-16 -1.0000000000000018 1.6653345369377348e-16" range="-0.3490658503988659 1.7453292519943295"/>
+                                    <!-- <joint name="ThumbTipAssembly_da16f050_joint" pos="-0.13725528249709146 -0.09083064955243778 -0.11281689327909648" axis="-1.3877787807814457e-16 -1.0000000000000018 1.6653345369377348e-16" range="-0.3490658503988659 1.7453292519943295"/> -->
                                     <geom class="orca" mesh="ThumbTipAssembly"/>
                                   </body>
-                                  <joint class="orca" name="P-PP-Assembly_4e31112a_joint" pos="-0.12493716415002687 -0.08077510107426261 -0.10269202363708826" axis="-1.27675647831893e-15 -0.9999999999999994 4.996003610813204e-16" range="-0.3490658503988659 2.007128639793479"/>
+                                  <joint class="orca" name="P-PP-Assembly_4e31112a_joint" pos="-0.0 -0.0 -0.0" axis="-1.27675647831893e-15 -0.9999999999999994 4.996003610813204e-16" range="-0.3490658503988659 2.007128639793479"/>
+                                  <!-- <joint name="P-PP-Assembly_4e31112a_joint" pos="-0.12493716415002687 -0.08077510107426261 -0.10269202363708826" axis="-1.27675647831893e-15 -0.9999999999999994 4.996003610813204e-16" range="-0.3490658503988659 2.007128639793479"/> -->
                                   <geom class="orca" mesh="P-PP-Assembly"/>
                                 </body>
-                                <joint class="orca" name="T-AP-Assembly_b68d2db9_joint" pos="0.05637594511670266 -0.011460195463730501 0.0063916678614429154" axis="-1.1102230246251565e-16 0.34202014332566866 0.9396926207859075" range="-0.7853981633974483 0.7853981633974483"/>
+                                <joint class="orca" name="T-AP-Assembly_b68d2db9_joint" pos="0.03 0.002 0.0063916678614429154" axis="-1.1102230246251565e-16 0.34202014332566866 0.9396926207859075" range="-0.7853981633974483 0.7853981633974483"/>
+                                <!-- <joint name="T-AP-Assembly_b68d2db9_joint" pos="0.05637594511670266 -0.011460195463730501 0.0063916678614429154" axis="-1.1102230246251565e-16 0.34202014332566866 0.9396926207859075" range="-0.7853981633974483 0.7853981633974483"/> -->
                                 <geom class="orca" mesh="T-AP-Assembly"/>
                               </body>
                               <joint class="orca" name="T-TP-Assembly_8f310e51_joint" pos="0.016999999999975042 6.852157730108388e-17 2.7301511745791984e-14" axis="-2.920774733183862e-12 3.3306690738754696e-16 1.0000000000000002" range="-0.9250245035569946 0.8377580409572782"/>
@@ -283,7 +286,7 @@
                               <joint class="orca" name="AP-Assembly_a3d92f10_joint" pos="0.020000000000000052 -4.640385298237959e-17 5.421010862427522e-18" axis="2.0816681711721685e-16 -1.1102230246251565e-16 -0.9999999999999998" range="-0.5235987755982988 0.5235987755982988"/>
                               <geom class="orca" mesh="AP-Assembly"/>
                             </body>
-                            <joint class="orca" name="CarpalsAssembly_a3f178b9_joint" pos="0.002000000000000012 -0.0014412498723578018 -0.03871931353519552" axis="-1.0000000000000009 -1.4791141972893971e-31 -1.0947644252537633e-46" range="-1.0471975511965976 1.0471975511965976"/>
+                            <joint class="orca" name="CarpalsAssembly_a3f178b9_joint" pos="0.002000000000000012 -0.0014412498723578018 -0.03871931353519552" axis="-1.0000000000000009 -1.4791141972893971e-31 -1.0947644252537633e-46" range="0.0 0.2"/>
                             <geom class="orca" mesh="CarpalsAssembly"/>
                           </body>
                           <geom class="orca" mesh="TowerAssembly"/>
@@ -312,23 +315,23 @@
   </actuator>
 
   <actuator>
-		<position class="orca" name="CarpalsAssembly_a3f178b9_joint_actuator" joint="CarpalsAssembly_a3f178b9_joint" ctrlrange="-1.0471975511965976 1.0471975511965976"/>
-		<position class="orca" name="AP-Assembly_a3d92f10_joint_actuator" joint="AP-Assembly_a3d92f10_joint" ctrlrange="-0.5235987755982988 0.5235987755982988"/>
-		<position class="orca" name="M-PP-Assembly_c004e538_joint_actuator" joint="M-PP-Assembly_c004e538_joint" ctrlrange="-0.3490658503988659 1.9198621771937625"/>
-		<position class="orca" name="FingerTipAssembly_bc7e70d7_joint_actuator" joint="FingerTipAssembly_bc7e70d7_joint" ctrlrange="-0.3490658503988659 2.2689280275926285"/>
-		<position class="orca" name="AP-Assembly_0c2e1cd6_joint_actuator" joint="AP-Assembly_0c2e1cd6_joint" ctrlrange="-0.5235987755982988 0.5235987755982988"/>
-		<position class="orca" name="M-PP-Assembly_8bc6ddb7_joint_actuator" joint="M-PP-Assembly_8bc6ddb7_joint" ctrlrange="-0.3490658503988659 1.9198621771937625"/>
-		<position class="orca" name="FingerTipAssembly_a13adc36_joint_actuator" joint="FingerTipAssembly_a13adc36_joint" ctrlrange="-0.3490658503988659 2.2689280275926285"/>
-		<position class="orca" name="AP-Assembly_8fe40f7e_joint_actuator" joint="AP-Assembly_8fe40f7e_joint" ctrlrange="-0.5235987755982988 0.5235987755982988"/>
-		<position class="orca" name="P-PP-Assembly_c1041f9e_joint_actuator" joint="P-PP-Assembly_c1041f9e_joint" ctrlrange="-0.3490658503988659 1.9198621771937625"/>
-		<position class="orca" name="FingerTipAssembly_28a83376_joint_actuator" joint="FingerTipAssembly_28a83376_joint" ctrlrange="-0.3490658503988659 2.2689280275926285"/>
-		<position class="orca" name="AP-Assembly_22c0dde4_joint_actuator" joint="AP-Assembly_22c0dde4_joint" ctrlrange="-0.5235987755982988 0.5235987755982988"/>
-		<position class="orca" name="I-PP-Assembly_32ddceb4_joint_actuator" joint="I-PP-Assembly_32ddceb4_joint" ctrlrange="-0.3490658503988659 1.9198621771937625"/>
-		<position class="orca" name="FingerTipAssembly_cc9cd17e_joint_actuator" joint="FingerTipAssembly_cc9cd17e_joint" ctrlrange="-0.3490658503988659 2.2689280275926285"/>
-		<position class="orca" name="T-TP-Assembly_8f310e51_joint_actuator" joint="T-TP-Assembly_8f310e51_joint" ctrlrange="-0.9250245035569946 0.8377580409572782"/>
-		<position class="orca" name="T-AP-Assembly_b68d2db9_joint_actuator" joint="T-AP-Assembly_b68d2db9_joint" ctrlrange="-0.7853981633974483 0.7853981633974483"/>
-		<position class="orca" name="P-PP-Assembly_4e31112a_joint_actuator" joint="P-PP-Assembly_4e31112a_joint" ctrlrange="-0.3490658503988659 2.007128639793479"/>
-		<position class="orca" name="ThumbTipAssembly_da16f050_joint_actuator" joint="ThumbTipAssembly_da16f050_joint" ctrlrange="-0.3490658503988659 1.7453292519943295"/>
+		<position class="orca" name="wrist" joint="CarpalsAssembly_a3f178b9_joint" ctrlrange="-1.0471975511965976 1.0471975511965976"/>
+		<position class="orca" name="ring_abd" joint="AP-Assembly_a3d92f10_joint" ctrlrange="-0.5235987755982988 0.5235987755982988"/>
+		<position class="orca" name="ring_mcp" joint="M-PP-Assembly_c004e538_joint" ctrlrange="-0.3490658503988659 1.9198621771937625"/>
+		<position class="orca" name="ring_pip" joint="FingerTipAssembly_bc7e70d7_joint" ctrlrange="-0.3490658503988659 2.2689280275926285"/>
+		<position class="orca" name="middle_abd" joint="AP-Assembly_0c2e1cd6_joint" ctrlrange="-0.5235987755982988 0.5235987755982988"/>
+		<position class="orca" name="middle_mcp" joint="M-PP-Assembly_8bc6ddb7_joint" ctrlrange="-0.3490658503988659 1.9198621771937625"/>
+		<position class="orca" name="middle_pip" joint="FingerTipAssembly_a13adc36_joint" ctrlrange="-0.3490658503988659 2.2689280275926285"/>
+		<position class="orca" name="pinky_abd" joint="AP-Assembly_8fe40f7e_joint" ctrlrange="-0.5235987755982988 0.5235987755982988"/>
+		<position class="orca" name="pinky_mcp" joint="P-PP-Assembly_c1041f9e_joint" ctrlrange="-0.3490658503988659 1.9198621771937625"/>
+		<position class="orca" name="pinky_pip" joint="FingerTipAssembly_28a83376_joint" ctrlrange="-0.3490658503988659 2.2689280275926285"/>
+		<position class="orca" name="index_abd" joint="AP-Assembly_22c0dde4_joint" ctrlrange="-0.5235987755982988 0.5235987755982988"/>
+		<position class="orca" name="index_mcp" joint="I-PP-Assembly_32ddceb4_joint" ctrlrange="-0.3490658503988659 1.9198621771937625"/>
+		<position class="orca" name="index_pip" joint="FingerTipAssembly_cc9cd17e_joint" ctrlrange="-0.3490658503988659 2.2689280275926285"/>
+		<position class="orca" name="thumb_mcp" joint="T-TP-Assembly_8f310e51_joint" ctrlrange="-0.9250245035569946 0.8377580409572782"/>
+		<position class="orca" name="thumb_abd" joint="T-AP-Assembly_b68d2db9_joint" ctrlrange="-0.7853981633974483 0.7853981633974483"/>
+		<position class="orca" name="thumb_pip" joint="P-PP-Assembly_4e31112a_joint" ctrlrange="-0.3490658503988659 2.007128639793479"/>
+		<position class="orca" name="thumb_dip" joint="ThumbTipAssembly_da16f050_joint" ctrlrange="-0.3490658503988659 1.7453292519943295"/>
 	</actuator>
 
   <sensor>
