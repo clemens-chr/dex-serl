@@ -12,7 +12,7 @@ def test_avp():
     Prints whether gripper is closing or opening (pinching_right).
 
     """
-    avp = AVPExpert()
+    avp = AVPExpert(avp_ip="10.93.181.127")
     with np.printoptions(precision=3, suppress=True):
         while True:
             action, pinching = avp.get_action()

@@ -482,8 +482,10 @@ class AVPIntervention(gym.ActionWrapper):
         
         # This is important to home the data from avp
         self.first_intervention = True
-        self.offset = None
-
+        
+        self.reference_franka_pose = None
+        self.reference_avp_pose = None
+        
         self.expert = AVPExpert(avp_ip=avp_ip)
         self.left, self.right = False, False
 
@@ -495,39 +497,53 @@ class AVPIntervention(gym.ActionWrapper):
         - action: avp action if intervened (left pinching); else, policy action
         """
         
+        print(self.expert.is_intervening())
         if not self.expert.is_intervening():
-            if not self.first_intervention:
-                self.first_intervention = True
-                self.offset = None
+            self.first_intervention = True
+            self.last_avp_pose = None
             return action, False
-        
         
         expert_a, grasping = self.expert.get_action()
         self.grasping = grasping
         
-        if self.first_intervention:
-            ref_position = action[:6]
-            self.offset = ref_position - expert_a[:6]
-            print(f"Offset: {self.offset}")
-            self.first_intervention = False
+        curr_avp_pose = expert_a[:6]
         
-        expert_a = expert_a + self.offset
-
+        if self.first_intervention:
+            self.last_avp_pose = curr_avp_pose.copy()
+            self.first_intervention = False
+            return action, False
+        
+        delta_pos = curr_avp_pose - self.last_avp_pose
+        
+        delta_pos[0] *= 30
+        delta_pos[1] *= 30
+        delta_pos[2] *= 100
+        
+        
+        self.last_avp_pose = curr_avp_pose.copy()
+        
+        expert_a = action[:6].copy() + delta_pos
+       
         if self.gripper_enabled:
             if self.grasping:
-                gripper_action = np.random.uniform(0.95, 1, size=(1,))
+                # gripper_action = np.random.uniform(0.95, 1, size=(1,))
+                gripper_action = np.random.uniform(0.9, 1, size=(1,))
             else:
-                gripper_action = np.random.uniform(0, 0.05, size=(1,))
-              
+                gripper_action = np.random.uniform(-1, -0.9, size=(1,))
+                #gripper_action = np.random.uniform(0, 0.05, size=(1,))
+            
             expert_a = np.concatenate((expert_a, gripper_action), axis=0)
-            # expert_a[:6] += np.random.uniform(-0.5, 0.5, size=6)
-
+        
         if self.action_indices is not None:
-            filtred_expert_a = np.zeros_like(expert_a)
-            filtred_expert_a[self.action_indices] = expert_a[self.action_indices]
-            expert_a = filtred_expert_a
-
-        return expert_a, True
+            filtered_expert_a = np.zeros_like(expert_a)
+            filtered_expert_a[self.action_indices] = expert_a[self.action_indices]
+            expert_a = filtered_expert_a
+    
+        
+        if np.linalg.norm(delta_pos) > 0.001:
+            return expert_a, True
+        
+        return action, False
             
     def step(self, action):
         

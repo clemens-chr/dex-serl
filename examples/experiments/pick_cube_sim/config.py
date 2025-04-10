@@ -7,6 +7,7 @@ from gymnasium import spaces
 from franka_env.envs.wrappers import (
     Quat2EulerWrapper,
     JoystickIntervention,
+    AVPIntervention,
     MultiCameraBinaryRewardClassifierWrapper,
     GripperCloseEnv,
     ControllerType
@@ -42,7 +43,8 @@ class TrainConfig(DefaultTrainingConfig):
     def get_environment(self, fake_env=False, save_video=False, classifier=False):
         env = PandaPickCubeGymEnv(render_mode="human", image_obs=True, reward_type="sparse", time_limit=100.0, control_dt=0.1)
         if not fake_env:
-            env = JoystickIntervention(env=env, controller_type=self.controller_type)
+            #env = JoystickIntervention(env=env, controller_type=self.controller_type)
+            env = AVPIntervention(env=env, avp_ip="10.93.181.127")
         env = RelativeFrame(env)
         env = Quat2EulerWrapper(env)
         env = SERLObsWrapper(env, proprio_keys=self.proprio_keys)
