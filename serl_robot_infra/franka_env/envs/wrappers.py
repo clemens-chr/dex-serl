@@ -502,6 +502,8 @@ class AVPIntervention(gym.ActionWrapper):
             self.last_avp_pose = None
             return action, False
         
+        print("AVP intervening")
+        
         expert_a, grasping = self.expert.get_action()
         self.grasping = grasping
         

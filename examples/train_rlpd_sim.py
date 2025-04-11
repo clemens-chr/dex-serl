@@ -74,6 +74,7 @@ def actor(agent, data_store, intvn_data_store, env, sampling_rng):
     if FLAGS.eval_checkpoint_step:
         success_counter = 0
         time_list = []
+        print("Evaluating checkpoint...")
 
         ckpt = checkpoints.restore_checkpoint(
             os.path.abspath(FLAGS.checkpoint_path),
@@ -81,6 +82,7 @@ def actor(agent, data_store, intvn_data_store, env, sampling_rng):
             step=FLAGS.eval_checkpoint_step,
         )
         agent = agent.replace(state=ckpt)
+        
 
         for episode in range(FLAGS.eval_n_trajs):
             obs, _ = env.reset()
@@ -171,12 +173,15 @@ def actor(agent, data_store, intvn_data_store, env, sampling_rng):
                         seed=key,
                         argmax=False,
                     )
+                    print("Sampling actions from agent")
                     actions = np.asarray(jax.device_get(actions))
-
+                    
+    
             # Step environment
             with timer.context("step_env"):
 
                 next_obs, reward, done, truncated, info = env.step(actions)
+                
 
                 if "left" in info:
                     info.pop("left")
