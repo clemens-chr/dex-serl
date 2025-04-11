@@ -1,5 +1,5 @@
 from avp_stream import VisionProStreamer
-avp_ip = "192.168.1.10"   # example IP 
+avp_ip = "10.93.181.127"   # example IP 
 s = VisionProStreamer(ip = avp_ip, record = True)
 
 while True:

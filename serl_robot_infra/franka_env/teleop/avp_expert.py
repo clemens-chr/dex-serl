@@ -27,11 +27,13 @@ class AVPExpert:
         # This controls whether the user want to intervene
         # When left finger pinches, the user can control the robot
         self.latest_data["is_intervening"] = False
+        
+        self.stop_event = multiprocessing.Event()
            
         # Start a process to continuously read from the AVP
         self.process = multiprocessing.Process(
             target=self._read_avp,
-            args=(AVP_IP, CONTROL_LOOP_HZ, PINCH_THRESHOLD)
+            args=(AVP_IP, CONTROL_LOOP_HZ, PINCH_THRESHOLD, self.stop_event),
         )
         
         self.process.start()
@@ -57,7 +59,7 @@ class AVPExpert:
             print(f"Error converting AVP matrix to 7D pose: {e}")
             return None
 
-    def _read_avp(self, ip: float, control_loop_hz: float, pinch_threshold: float):
+    def _read_avp(self, ip: float, control_loop_hz: float, pinch_threshold: float, stop_event: multiprocessing.Event):
         
         pinch_active = False
         reference_avp_pose = None 
@@ -71,7 +73,7 @@ class AVPExpert:
             time.sleep(0.1) # Wait for the stream to start
             pass 
 
-        while stream:
+        while stream and not stop_event.is_set():
             current_time = time.time()
             if current_time - last_loop_time < (1.0 / control_loop_hz):
                 time.sleep(0.001) # Sleep briefly if looping too fast
@@ -124,6 +126,6 @@ class AVPExpert:
         return self.latest_data["is_intervening"]
     
     def close(self):
-        if self.process.is_alive():
-            self.process.terminate()
-            self.process.join()
+        print("Stopping AVP process...")
+        self.stop_event.set()
+        self.process.terminate()

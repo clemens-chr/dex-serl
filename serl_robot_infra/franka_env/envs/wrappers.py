@@ -497,7 +497,6 @@ class AVPIntervention(gym.ActionWrapper):
         - action: avp action if intervened (left pinching); else, policy action
         """
         
-        print(self.expert.is_intervening())
         if not self.expert.is_intervening():
             self.first_intervention = True
             self.last_avp_pose = None

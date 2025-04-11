@@ -61,9 +61,9 @@ class MujocoViewer:
             self.viewer_2.sync()
 
     def close(self):
-        import glfw
+        print("Closing viewer")
         if self.viewer_1:
             self.viewer_1.close()
         if self.viewer_2:
             self.viewer_2.close()
-        glfw.terminate()
+        print("Viewer closed")

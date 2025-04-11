@@ -68,13 +68,18 @@ def main(_):
                 returns = 0
                 obs, info = env.reset()
             if success_count >= success_needed:
+                dual_viewer.close()
                 break
 
+    print("Recording finished.")
     if not os.path.exists("./demo_data"):
+        print("Creating demo_data directory.")
         os.makedirs("./demo_data")
+        
     uuid = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     file_name = f"./demo_data/{FLAGS.exp_name}_{success_needed}_demos_{uuid}.pkl"
     with open(file_name, "wb") as f:
+        
         pkl.dump(transitions, f)
         print(f"saved {success_needed} demos to {file_name}")
 
