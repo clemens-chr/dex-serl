@@ -149,6 +149,7 @@ class GripperPenaltyWrapper(gym.Wrapper):
 
         info["grasp_penalty"] = 0.0
 
+        # penalize fast gripper actions 
         if (action[6] < -0.5 and self.last_left_gripper_pos > 0.85) or (
             action[6] > 0.5 and self.last_left_gripper_pos < 0.85
         ):

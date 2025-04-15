@@ -7,6 +7,7 @@ from gymnasium import spaces
 from franka_env.envs.wrappers import (
     Quat2EulerWrapper,
     JoystickIntervention,
+    AVPIntervention,
     MultiCameraBinaryRewardClassifierWrapper,
     GripperCloseEnv,
     ControllerType
@@ -32,7 +33,7 @@ class TrainConfig(DefaultTrainingConfig):
     replay_buffer_capacity = 50000
     batch_size = 256
     random_steps = 0
-    checkpoint_period = 5000
+    checkpoint_period = 2500
     steps_per_update = 50
     encoder_type = "resnet-pretrained"
     setup_mode = "single-arm-learned-gripper"
@@ -40,12 +41,14 @@ class TrainConfig(DefaultTrainingConfig):
     classifier = False
 
     def get_environment(self, fake_env=False, save_video=False, classifier=False):
-        env = OrcaPickCubeGymEnv(render_mode="human", image_obs=True, reward_type="sparse", time_limit=100.0, control_dt=0.1)
+        env = OrcaPickCubeGymEnv(render_mode="human", image_obs=True, reward_type="sparse", time_limit=100.0, control_dt=0.1, action_scale=(0.05, 0.3))
         if not fake_env:
-            env = JoystickIntervention(env=env, controller_type=self.controller_type)
+            env = AVPIntervention(env=env, avp_ip="10.93.181.127")
         env = RelativeFrame(env)
         env = Quat2EulerWrapper(env)
         env = SERLObsWrapper(env, proprio_keys=self.proprio_keys)
+
+
         env = ChunkingWrapper(env, obs_horizon=1, act_exec_horizon=None)
         if classifier:
             classifier = load_classifier_func(
@@ -60,5 +63,7 @@ class TrainConfig(DefaultTrainingConfig):
                 return int(sigmoid(classifier(obs))[0] > 0.95)
 
             env = MultiCameraBinaryRewardClassifierWrapper(env, reward_func)
+
+        # applies penality if moved too fast to reduce fast movements
         env = GripperPenaltyWrapper(env, penalty=-0.02)
         return env

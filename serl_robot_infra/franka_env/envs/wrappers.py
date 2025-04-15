@@ -470,6 +470,7 @@ class JoystickIntervention(gym.ActionWrapper):
 
 
 
+
 class AVPIntervention(gym.ActionWrapper):
     def __init__(self, env, action_indices=None, avp_ip="10.93.181.127"):
         super().__init__(env)
@@ -516,35 +517,40 @@ class AVPIntervention(gym.ActionWrapper):
         
         delta_pos = curr_avp_pose - self.last_avp_pose
         
-        delta_pos[0] *= 30
-        delta_pos[1] *= 30
-        delta_pos[2] *= 100
-        
+        delta_pos[0] *= 50
+        delta_pos[1] *= 50
+        delta_pos[2] *= 80
         
         self.last_avp_pose = curr_avp_pose.copy()
         
-        expert_a = action[:6].copy() + delta_pos
-       
+        expert_a =  delta_pos
+        
         if self.gripper_enabled:
+            # if self.grasping:
+            #     # gripper_action = np.random.uniform(0.95, 1, size=(1,))
+            #     gripper_action = np.random.uniform(0.9, 1, size=(1,))
+            # else:
+            #     gripper_action = np.random.uniform(-1, -0.9, size=(1,))
+            #     #gripper_action = np.random.uniform(0, 0.05, size=(1,))
+
             if self.grasping:
                 # gripper_action = np.random.uniform(0.95, 1, size=(1,))
-                gripper_action = np.random.uniform(0.9, 1, size=(1,))
+                gripper_action = np.random.uniform(0.9, 1.0, size=(1,))
             else:
-                gripper_action = np.random.uniform(-1, -0.9, size=(1,))
                 #gripper_action = np.random.uniform(0, 0.05, size=(1,))
+                gripper_action = np.random.uniform(-1.0, -0.9, size=(1,))
             
             expert_a = np.concatenate((expert_a, gripper_action), axis=0)
+
         
         if self.action_indices is not None:
             filtered_expert_a = np.zeros_like(expert_a)
             filtered_expert_a[self.action_indices] = expert_a[self.action_indices]
             expert_a = filtered_expert_a
-    
+
         
-        if np.linalg.norm(delta_pos) > 0.001:
-            return expert_a, True
+        return expert_a, True
         
-        return action, False
             
     def step(self, action):
         

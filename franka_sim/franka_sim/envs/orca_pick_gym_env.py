@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import Any, Literal, Tuple, Dict
+from scipy.spatial.transform import Rotation as R
 
 # import gym
 import gymnasium as gym
@@ -84,7 +85,8 @@ class OrcaPickCubeGymEnv(MujocoGymEnv):
         self._attachment_site_id = self._model.site("attachment_site").id
         self._block_z = self._model.geom("block").size[2]
         
-        self.hand = OrcaHand('/home/ccc/dev/dex-serl/franka_sim/franka_sim/envs/models/orcahand_v1')
+        self.hand = OrcaHand('/home/clemens/serl_ws/src/dex-serl/franka_sim/franka_sim/envs/models/orcahand_v1')
+
         self.hand_ctrl_ids = []
         for actuator in self.hand.joint_ids:
             self.hand_ctrl_ids.append(self._model.actuator(actuator).id)
@@ -178,7 +180,11 @@ class OrcaPickCubeGymEnv(MujocoGymEnv):
         
         # Sample a new block position.
         block_xy = np.random.uniform(*_SAMPLING_BOUNDS)
+        random_rotation = R.from_euler('x', np.random.uniform(0, 360), degrees=True).as_quat()
+
         self._data.jnt("block").qpos[:3] = (*block_xy, self._block_z)
+        self._data.jnt("block").qpos[3:7] = random_rotation  # Set the quaternion for rotation
+
         mujoco.mj_forward(self._model, self._data)
 
         # Cache the initial block height.
@@ -205,21 +211,44 @@ class OrcaPickCubeGymEnv(MujocoGymEnv):
         """
         x, y, z, rx, ry, rz, grasp = action
 
+        # g = self._data.ctrl[self._gripper_ctrl_id] / 255
+        # dg = grasp * self._action_scale[1]
+        # ng = np.clip(g + dg, 0.0, 1.0)
+        # self._data.ctrl[self._gripper_ctrl_id] = ng * 255
+
         # Set the mocap position.
         pos = self._data.mocap_pos[0].copy()
         dpos = np.asarray([x, y, z]) * self._action_scale[0]
         npos = np.clip(pos + dpos, *_CARTESIAN_BOUNDS)
         self._data.mocap_pos[0] = npos
+
+        dg = grasp * self._action_scale[1]
        
-        # Set gripper grasp.
-        # g = self._data.ctrl[self._gripper_ctrl_id] / 255
-        # dg = grasp * self._action_scale[1]
-        # ng = np.clip(g + dg, 0.0, 1.0)
-        # self._data.ctrl[self._gripper_ctrl_id] = ng * 255
-        
+        # Set gripper grasp using relative action addition.
         for joint in self.hand.joint_ids:
-            self._data.ctrl[self._model.actuator(joint).id] = self.hand.joint_roms[joint][0] + self.hand.joint_roms[joint][1] * grasp
+            current_value = self._data.ctrl[self._model.actuator(joint).id]  # Get the current control value
         
+            if joint == "pinky_abd":
+                target_value = np.deg2rad(25)
+            elif joint == "ring_abd":
+                target_value =  np.deg2rad(15)
+            elif joint == "middle_abd":
+                target_value =  np.deg2rad(0)
+            elif joint == "index_abd":
+                target_value = np.deg2rad(-20)
+            else:
+                target_value = current_value + dg
+        
+                # Clip the target value to ensure it stays within the joint's range of motion
+                target_value = np.clip(
+                    target_value,
+                    np.deg2rad(self.hand.joint_roms[joint][0]),  # Minimum range
+                    np.deg2rad(self.hand.joint_roms[joint][1])   # Maximum range
+                )
+            
+                # Set the new control value
+            self._data.ctrl[self._model.actuator(joint).id] = target_value
+
         for _ in range(self._n_substeps):
             tau = opspace(
                 model=self._model,
@@ -237,6 +266,8 @@ class OrcaPickCubeGymEnv(MujocoGymEnv):
         rew = self._compute_reward()
         success = self._is_success()
         block_pos = self._data.sensor("block_pos").data
+
+        # this is what stops the run if wrong
         outside_bounds = np.any(block_pos[:2] < (_SAMPLING_BOUNDS[0] - 0.05)) or np.any(block_pos[:2] > (_SAMPLING_BOUNDS[1] + 0.05))
         terminated = self.time_limit_exceeded() or success or outside_bounds
 
@@ -291,10 +322,11 @@ class OrcaPickCubeGymEnv(MujocoGymEnv):
             r_lift = (block_pos[2] - self._z_init) / (self._z_success - self._z_init)
             r_lift = np.clip(r_lift, 0.0, 1.0)
             rew = 0.3 * r_close + 0.7 * r_lift
+
             return rew
         else:
             block_pos = self._data.sensor("block_pos").data
-            lift = block_pos[2] - self._z_init
+            lift = block_pos[2] - self._z_init        
             return float(lift > 0.2)
 
     def _is_success(self) -> bool:
@@ -302,7 +334,7 @@ class OrcaPickCubeGymEnv(MujocoGymEnv):
         tcp_pos = self._data.sensor("attachment_pos").data
         dist = np.linalg.norm(block_pos - tcp_pos)
         lift = block_pos[2] - self._z_init
-        return dist < 0.05 and lift > 0.2
+        return dist < 0.25 and lift > 0.2
 
 
 if __name__ == "__main__":

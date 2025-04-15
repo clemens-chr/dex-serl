@@ -21,3 +21,6 @@ MUJOCO_LOG.TXT
 .python-version
 
 **/orcahand_v1/
+
+# checkpoints
+**/experiments/checkpoints/

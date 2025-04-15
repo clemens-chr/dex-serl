@@ -81,6 +81,8 @@ def actor(agent, data_store, intvn_data_store, env, sampling_rng):
             agent.state,
             step=FLAGS.eval_checkpoint_step,
         )
+
+        print_green(f"Loaded checkpoint at step {FLAGS.eval_checkpoint_step}")
         agent = agent.replace(state=ckpt)
         
 
@@ -96,7 +98,7 @@ def actor(agent, data_store, intvn_data_store, env, sampling_rng):
                     seed=key
                 )
                 actions = np.asarray(jax.device_get(actions))
-
+ 
                 next_obs, reward, done, truncated, info = env.step(actions)
                 obs = next_obs
 
@@ -173,9 +175,8 @@ def actor(agent, data_store, intvn_data_store, env, sampling_rng):
                         seed=key,
                         argmax=False,
                     )
-                    print("Sampling actions from agent")
                     actions = np.asarray(jax.device_get(actions))
-                    
+
     
             # Step environment
             with timer.context("step_env"):
@@ -218,6 +219,8 @@ def actor(agent, data_store, intvn_data_store, env, sampling_rng):
 
                 obs = next_obs
                 if done or truncated:
+                    print("Done", done, "Truncated", truncated)
+                    print("Info", info)
                     info["episode"]["intervention_count"] = intervention_count
                     info["episode"]["intervention_steps"] = intervention_steps
                     stats = {"environment": info}  # send stats to the learner to log
@@ -319,6 +322,8 @@ def learner(rng, agent, replay_buffer, demo_buffer, wandb_logger=None):
     # wait till the replay buffer is filled with enough data
     timer = Timer()
     
+    print_green("Filled up with enough data")
+    
     if isinstance(agent, SACAgent):
         train_critic_networks_to_update = frozenset({"critic"})
         train_networks_to_update = frozenset({"critic", "actor", "temperature"})
@@ -355,6 +360,7 @@ def learner(rng, agent, replay_buffer, demo_buffer, wandb_logger=None):
         if step > 0 and step % (config.steps_per_update) == 0:
             agent = jax.block_until_ready(agent)
             server.publish_network(agent.state.params)
+            print_green("Published updated network")
 
         if step % config.log_period == 0 and wandb_logger:
             wandb_logger.log(update_info, step=step)
@@ -386,7 +392,7 @@ def main(_):
     env = config.get_environment(
         fake_env=False,
         save_video=FLAGS.save_video,
-        classifier=True,
+        classifier=False,
     )
     env = RecordEpisodeStatistics(env)
 
@@ -432,16 +438,43 @@ def main(_):
     )
 
     if FLAGS.checkpoint_path is not None and os.path.exists(FLAGS.checkpoint_path):
-        input("Checkpoint path already exists. Press Enter to resume training.")
-        ckpt = checkpoints.restore_checkpoint(
-            os.path.abspath(FLAGS.checkpoint_path),
-            agent.state,
+        # List available checkpoints
+        checkpoints_list = sorted(
+            [
+                ckpt for ckpt in os.listdir(FLAGS.checkpoint_path)
+                if ckpt.startswith("checkpoint_")
+            ]
         )
-        agent = agent.replace(state=ckpt)
-        ckpt_number = os.path.basename(
-            checkpoints.latest_checkpoint(os.path.abspath(FLAGS.checkpoint_path))
-        )[11:]
-        print_green(f"Loaded previous checkpoint at step {ckpt_number}.")
+        
+        if not checkpoints_list:
+            print("No checkpoints found in the specified path.")
+        else:
+            print("Available checkpoints:")
+            for i, ckpt in enumerate(checkpoints_list):
+                print(f"{i}: {ckpt}")
+            
+            # Let the user choose a checkpoint
+            choice = input("Enter the number of the checkpoint to load (press Enter for the latest): ")
+            
+            if choice.strip() == "":
+                # Default to the latest checkpoint
+                chosen_checkpoint = checkpoints_list[-1]
+            else:
+                # Use the user-selected checkpoint
+                chosen_checkpoint = checkpoints_list[int(choice)]
+            
+            checkpoint_path = os.path.join(FLAGS.checkpoint_path, chosen_checkpoint)
+            
+            # Restore the chosen checkpoint
+            ckpt = checkpoints.restore_checkpoint(
+                os.path.abspath(checkpoint_path),
+                agent.state,
+            )
+            agent = agent.replace(state=ckpt)
+            
+            # Extract checkpoint number
+            ckpt_number = os.path.basename(checkpoint_path)[11:]
+            print_green(f"Loaded checkpoint '{chosen_checkpoint}' at step {ckpt_number}.")
 
     def create_replay_buffer_and_wandb_logger():
         replay_buffer = MemoryEfficientReplayBufferDataStore(

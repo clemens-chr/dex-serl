@@ -4,4 +4,5 @@ s = VisionProStreamer(ip = avp_ip, record = True)
 
 while True:
     r = s.latest
-    print(r['head'], r['right_wrist'], r['right_fingers'])
+    print(r['right_pinch_distance'])
+    #print(r['head'], r['right_wrist'], r['right_fingers'])

@@ -21,7 +21,7 @@ if __name__ == "__main__":
 # env = envs.PandaPickCubeGymEnv(render_mode="human", image_obs=True)
 env = gym.make("OrcaPickCubeVision-v0", render_mode="human", image_obs=True)
 #env = AVPIntervention(env, avp_ip=args.avp_ip)
-env = JoystickIntervention(env)
+env = AVPIntervention(env)
 
 env.reset()
 m = env.unwrapped.model

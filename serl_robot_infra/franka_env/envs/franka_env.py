@@ -215,6 +215,7 @@ class FrankaEnv(gym.Env):
         self.nextpos = self.currpos.copy()
         self.nextpos[:3] = self.nextpos[:3] + xyz_delta * self.action_scale[0]
 
+    
         # GET ORIENTATION FROM ACTION
         self.nextpos[3:] = (
             Rotation.from_euler("xyz", action[3:6] * self.action_scale[1])
